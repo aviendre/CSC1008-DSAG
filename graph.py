@@ -3,44 +3,64 @@
 # file and creates a list
 # -----------------------------------
 
-import csv
-from math import sin, cos, sqrt, atan2, radians
+import pandas,csv
+from math import sin, cos, sqrt, asin, radians
 
 RADIUS = 6371
-node = []
 
 def GraphNode():
-    '''Read the CSV file and returns to global environment node'''
-    global node
-    temp = []
-    nodeFile = open('points.csv')
-    header = []
-    header = next(nodeFile)
-    for n in nodeFile:
-        temp.append(n)
-    nodeFile.close()
-    for x in temp:
-        node.append(str(x).split(','))
-    print('\n'.join(map(str,node)))
-    #print('\n'.join(map(str,node)))
+    x = 1
+    intersection = []
+    intersection_list = pandas.read_csv('points.csv')
+    for i in intersection_list['Intersection']:
+        intersection.append(i)
 
-def Graph():
-    pass 
+    data_lat_long = pandas.read_csv('points.csv')
+    dict_lat_lng = data_lat_long.to_dict()
+    points = {}
+    for i in range(len(intersection)):
+        points[dict_lat_lng['Intersection'][i]] = (dict_lat_lng['Longitude'][i],dict_lat_lng['Latitude'][i],dict_lat_lng['Connected'][i])
+    return points
 
-def calculateDist(pointx, pointy):
+def calculateDist(lat1,lon1,lat2,lon2):
     #Haversine Formula
-    lat1 = radians(pointx.lat)
-    lng1 = radians(pointx.lng)
-    lat2 = radians(pointy.lat)
-    lng2 = radians(pointy.lng)
+    R = 6372.8 # this is in miles.  For Earth radius in kilometers use 6372.8 km
 
-    dLon = lng2 - lng1
-    dLat = lat2 - lat1
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
 
-    a = sin(dLat / 2)**2 + cos(lat1) * cos(lat2) * sin(dLon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a)) 
-    distance = RADIUS * c
+    a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
+    c = 2*asin(sqrt(a))
 
-    return distance
+    return R * c
 
-GraphNode()
+x = GraphNode()
+'''
+lat = []
+lng = []
+junction = ['']
+
+for key in x.keys():
+    junction.append(key)
+
+for y in range(0,len(x)):
+    lng.append(list(x.values())[y][0])
+    lat.append(list(x.values())[y][1])
+
+distance = [[0 for col in range(len(lat))] for col in range(len(lat))]
+for i in range(0,len(x)):
+    for y in range(0,len(x)):
+        if i == y:
+            distance[i][y] = 0
+            continue
+        distance[i][y] = calculateDist(lat[i],lng[i],lat[y],lng[y])
+
+with open('distances.csv','w',encoding = 'UTF8',newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(junction)
+    writer.writerows(distance)
+
+#print('\n'.join(map(str,distance)))
+'''
