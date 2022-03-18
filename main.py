@@ -2,5 +2,5 @@ from onemapsg import OneMapClient
 
 Client = OneMapClient("ridhwanproper@gmail.com","esMrbzVsFr")
 
-print(Client.search("540149"))
-
+#starting = Client.get_planning_area_bounds()
+print(Client.get_token())
