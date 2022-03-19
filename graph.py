@@ -37,6 +37,7 @@ def calculateDist(lat1,lon1,lat2,lon2):
     return R * c
 
 x = GraphNode()
+print(x)
 '''
 lat = []
 lng = []
