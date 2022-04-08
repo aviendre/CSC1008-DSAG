@@ -6,20 +6,22 @@
   </style>
 {% endblock %}
 {% block content %}
-<form class="form" method="post" style="margin-top: 2rem;" onsubmit="return validateTrip()">
+<form class="form" action="{{ url_for('views.sharedRideResult') }}" style="margin-top: 2rem;" onsubmit="return validateTrip()">
     <div class="form-group row ml-1">
         <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" for="ride">Type of Ride:</label>
         <input class="form-control text  col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" name="ride" id="ride" value="Shared" readonly/>
     </div>
     <div class="form-group row ml-1">
         <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">Trips: </label>
-        <ol id="locations"></ol>
+        <ol id="locations">
+            <h>Passager,Capacity,From,To</h>
+        </ol>
         <input type="form-control text" name="locationsValue" id="locationsValue" hidden>
         <input type="form-control number" name="capacityValue" id="capacityValue" value="0" hidden>
     </div>
     <div class="form-group row ml-1">
         <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" for="passenger">Passenger:<span style="color: red;">*</span></label>       
-            <select class="form-control col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" name="passenger" id="passenger" onchange="changePassenger()">
+            <select class="form-control col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" name="passenger" id="passenger">
                 <option value="" selected>Select Passenger</option>
                 <option value="Ali">Ali</option>
                 <option value="Bob">Bob</option>
@@ -60,7 +62,7 @@
             </select>            
         </div>  
         <div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">
-            <input class="btn btn-outline-primary" style="margin-top:2rem!important" type="button" onclick="addLoaction()" value="add trips"/>
+            <input class="btn btn-outline-primary" style="margin-top:2rem!important" type="button" id="addTrip" onclick="addLoaction()" value="add trips"/>
         </div>        
     </div>
     <div class="form-group row ml-1">
@@ -74,30 +76,32 @@
 <script type="text/javascript">
     var list = document.getElementById('locations');
     function addLoaction(){
+        if(parseInt(document.getElementById('capacity').value)+parseInt(document.getElementById("capacityValue").value) >6){
+            alert("Total Capacity cannot be more than 6!")
+            return false
+        }
         if(document.getElementById('passenger').value == ""){
             alert("Please Select Passager");
-            return false
+            return false;
         }
         if(document.getElementById('capacity').value == ""){
             alert("Please Select Capcity");
-            return false
+            return false;
         }
         if (!validate()){return false;}
-        var loca = "["+document.getElementById('faddress').value+","+document.getElementById('taddress').value+"]";
+        var loca = document.getElementById('passenger').value+","+document.getElementById('capacity').value+","+document.getElementById('faddress').value+","+document.getElementById('taddress').value;
         var entry = document.createElement('li');
         entry.appendChild(document.createTextNode(loca));
         list.appendChild(entry);
-        // passager,faddress,toaddress;passager,faddress,toaddress
-        document.getElementById("locationsValue").value += loca+",";
+        document.getElementById("locationsValue").value += loca+";";
         document.getElementById("capacityValue").value =  parseInt(document.getElementById("capacityValue").value)+parseInt(document.getElementById("capacity").value);
-        document.getElementById("passenger").value=""
-        document.getElementById("capacity").value=""
-        document.getElementById("faddress").value=""
-        document.getElementById("taddress").value=""
-    }
-    function changePassenger(){
-        document.getElementById('faddress').value='';
-        document.getElementById("taddress").value='';
+        document.getElementById("passenger").value="";
+        document.getElementById("capacity").value="";
+        document.getElementById("faddress").value="";
+        document.getElementById("taddress").value="";       
+        if(document.getElementById("locations").getElementsByTagName("li").length >=2){
+            document.getElementById("addTrip").disabled = true;
+        }
     }
     function checkTrip(){
         var toloca = document.getElementById('faddress').value;
@@ -118,7 +122,7 @@
     function validateTrip(){
         var capacityValue = document.getElementById('capacityValue').value;
         if (capacityValue == "0" ){
-            alert("Pkease Add Trip!");
+            alert("Please Add Trip!");
             return false;
         }
         return true;

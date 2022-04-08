@@ -499,13 +499,16 @@ def UserToDriver(customerList, driverList):
 
             #print("\n==[List of drivers / KM aways]== (Solo)")
             for i in range(0, len(soloDriver)):
-                # Debugging
+                
+                if(soloDriver[i].soloPicked):         
+                        nDriver = soloDriver[i+1]
+                        nDriverDist = soloDriver[i+1].distAwayFromCust(cust)
                 # Check whether driver is indeed nearest to customer :)
                 #print(soloDriver[i].name, soloDriver[i].distAwayFromCust(cust), soloDriver[i].getCapacity())
                 if (soloDriver[i].getCapacity() >= cust.getCapacity()):
                     # right now nDriverDist is set to 0
                     # what if 0 cant fit. how will it affect the if below
-                  if soloDriver[i].distAwayFromCust(cust) < nDriverDist:
+                  if soloDriver[i].distAwayFromCust(cust) < nDriverDist and not soloDriver[i].soloPicked:
                       nDriverDist = soloDriver[i].distAwayFromCust(cust)
                       nDriver = soloDriver[i]
                       continue
@@ -529,9 +532,7 @@ def UserToDriver(customerList, driverList):
             nDriver = sharedDriver[0]
             nDriverDist = sharedDriver[0].distAwayFromCust(cust)
 
-            print("\n==[List of drivers / KM aways / Capacity]== (Shared)")
             for i in range(0, len(sharedDriver)):
-              print(sharedDriver[i].name, sharedDriver[i].distAwayFromCust(cust), sharedDriver[i].getCapacity())
                 #if there is 2 drivers which meet this condition, it will minus both the drivers since both meet the conditions.
                 #there is no unique condition to check if the user can accept drivers or not
               if (sharedDriver[i].getSharedCounter() == 2
@@ -549,7 +550,7 @@ def UserToDriver(customerList, driverList):
         if i.getSharedCounter() == 2:
             currentMatching[i.getName()] = sharedMatching(i)
         elif i.getSharedCounter() == 1:
-            currentMatching[i.getName()] = soloMatching(i)
+            currentMatching[i.getName()] = soloMatching(i.getPassengers()[0],i)
     return currentMatching
 
 def calculateJourneyDetails(distance, service):
@@ -603,7 +604,7 @@ driver2 = Client.search('629545').get('results')
 driver2data = next(iter(driver2))
 driverList.append(
     Driver('Carl', (driver2data.get('LATITUDE'), driver2data.get('LONGITUDE')),
-           3, False))
+           6, False))
 driver3 = Client.search('629613').get('results')
 driver3data = next(iter(driver3))
 driverList.append(
@@ -615,67 +616,4 @@ driverList.append(
     Driver('Denzel',
            (driver4data.get('LATITUDE'), driver4data.get('LONGITUDE')), 2,
            False))
-
-# #Shared Customer pool
-# customerStart = Client.search("629215").get('results')
-# customerstart = next(iter(customerStart))
-# customerEnd = Client.search('629197').get('results')
-# customerend = next(iter(customerEnd))
-# customerList.append(
-#     Customer('Nathan', 2,
-#              (customerstart.get('LATITUDE'), customerstart.get('LONGITUDE')),
-#              (customerend.get('LATITUDE'), customerend.get('LONGITUDE')),
-#              True))
-
-# customer2Start = Client.search("629588").get('results')
-# customer2start = next(iter(customer2Start))
-# customer2End = Client.search('629199').get('results')
-# customer2end = next(iter(customer2End))
-# customerList.append(
-#     Customer('Bob', 4,
-#              (customer2start.get('LATITUDE'), customer2start.get('LONGITUDE')),
-#              (customer2end.get('LATITUDE'), customer2end.get('LONGITUDE')),
-#              True))
-
-# customer3Start = Client.search("GUL CIRCLE MRT STATION (EW30)").get('results')
-# customer3start = next(iter(customer3Start))
-# customer3End = Client.search('629613').get('results')
-# customer3end = next(iter(customer3End))
-# customerList.append(
-#     Customer('Liu', 2,
-#              (customer3start.get('LATITUDE'), customer3start.get('LONGITUDE')),
-#              (customer3end.get('LATITUDE'), customer3end.get('LONGITUDE')),
-#              True))
-
-# customer4Start = Client.search("24229 (BUS STOP)").get('results')
-# customer4start = next(iter(customer4Start))
-# customer4End = Client.search('629636').get('results')
-# customer4end = next(iter(customer4End))
-# customerList.append(
-#     Customer('Ali', 2,
-#              (customer4start.get('LATITUDE'), customer4start.get('LONGITUDE')),
-#              (customer4end.get('LATITUDE'), customer4end.get('LONGITUDE')),
-#              True))
-
-# #Solo customer pool
-# customer5Start = Client.search("629605").get('results')
-# customer5start = next(iter(customer5Start))
-# customer5End = Client.search('24179 (BUS STOP)').get('results')
-# customer5end = next(iter(customer5End))
-# customerList.append(
-#     Customer('Caleb', 4,
-#              (customer5start.get('LATITUDE'), customer5start.get('LONGITUDE')),
-#              (customer5end.get('LATITUDE'), customer5end.get('LONGITUDE')),
-#              False))
-
-# customer6Start = Client.search("629585").get('results')
-# customer6start = next(iter(customer6Start))
-# customer6End = Client.search('629633').get('results')
-# customer6end = next(iter(customer6End))
-# customerList.append(
-#     Customer('Wei Jie', 2,
-#              (customer6start.get('LATITUDE'), customer6start.get('LONGITUDE')),
-#              (customer6end.get('LATITUDE'), customer6end.get('LONGITUDE')),
-#              False))
-
 # print(UserToDriver(customerList, driverList))
