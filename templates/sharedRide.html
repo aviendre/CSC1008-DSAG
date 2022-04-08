@@ -15,7 +15,7 @@
         <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">Trips: </label>
         <ol id="locations"></ol>
         <input type="form-control text" name="locationsValue" id="locationsValue" hidden>
-        <input type="form-control number" name="capcityValue" id="capcityValue" value="0" hidden>
+        <input type="form-control number" name="capacityValue" id="capacityValue" value="0" hidden>
     </div>
     <div class="form-group row ml-1">
         <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" for="passenger">Passenger:<span style="color: red;">*</span></label>       
@@ -78,7 +78,7 @@
             alert("Please Select Passager");
             return false
         }
-        if(document.getElementById('capcity').value == ""){
+        if(document.getElementById('capacity').value == ""){
             alert("Please Select Capcity");
             return false
         }
@@ -89,15 +89,15 @@
         list.appendChild(entry);
         // passager,faddress,toaddress;passager,faddress,toaddress
         document.getElementById("locationsValue").value += loca+",";
-        document.getElementById("capcityValue").value =  parseInt(document.getElementById("capcityValue").value)+parseInt(document.getElementById("capcity").value);
+        document.getElementById("capacityValue").value =  parseInt(document.getElementById("capacityValue").value)+parseInt(document.getElementById("capacity").value);
         document.getElementById("passenger").value=""
-        document.getElementById("capcity").value=""
+        document.getElementById("capacity").value=""
         document.getElementById("faddress").value=""
         document.getElementById("taddress").value=""
     }
     function changePassenger(){
         document.getElementById('faddress').value='';
-        document.getElemdentById("taddress").value='';
+        document.getElementById("taddress").value='';
     }
     function checkTrip(){
         var toloca = document.getElementById('faddress').value;
@@ -116,8 +116,8 @@
         return true;
     } 
     function validateTrip(){
-        var capcityValue = document.getElementById('capcityValue').value;
-        if (capcityValue == "0" ){
+        var capacityValue = document.getElementById('capacityValue').value;
+        if (capacityValue == "0" ){
             alert("Pkease Add Trip!");
             return false;
         }

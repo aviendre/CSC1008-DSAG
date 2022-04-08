@@ -65,6 +65,7 @@ def soloRideResult():
     key = result.keys()
     for i in key:
         driverName = i
+        print(i)
         line =result.get(i)[0]
         point = result.get(i)[1]
         price = result.get(i)[2]
