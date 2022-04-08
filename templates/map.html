@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block title %}Service Map{% endblock %}
+{% block content %}
+<
+    <div class="form-group row ml-2">
+        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-5">
+            <h4>Service Map</h4>
+            <p>This is GUI Area of Singapore. We only service area within the yellow area with limited address to choose from. Thanks for your understanding</p>
+            <div>
+                <img src='https://developers.onemap.sg/commonapi/staticmap/getStaticImage?layerchosen=default&lat=1.314871&lng=103.668149&zoom=14&height=400&width=512&polygons=[[1.322862, 103.663353],[1.322629,103.679065],[1.309715,103.678620],[1.307859,103.663278],[1.314697,103.655624]]&lines=&points=&color=&fillColor='></img>
+            </div>
+        </div>
+        <div class="row col-12 col-sm-12 col-md-12 col-lg-12 col-xl-6">
+            <div  class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-3">
+                <h4>Address</h4>
+                <p>A: GUL CIRCLE MRT STATION (EW30)<br>
+                    B: 24229 (BUS STOP) <br>
+                    C: 126 GUL CIRCLE<br>
+                    D: 24249 (BUS STOP)<br>
+                    E: 629613<br>
+                    F: GUL STREET 2<br>
+                    G: 629215<br>
+                    H: 629541<br>
+                    I: 628509<br>
+                    J: 19 GUL LANE<br>
+                    K: 629637<br>
+                    L: GUL CIRCLE DISTRICENTRE<br>
+                    M: 629197<br>
+                </p> 
+            </div>     
+            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-3">
+                <br>
+                <img src='https://developers.onemap.sg/commonapi/staticmap/getStaticImage?layerchosen=default&lat=1.314871&lng=103.668149&zoom=14&height=400&width=400&polygons=&lines=&points=[1.31002854422937,103.672431469936,"255,255,178","M"]|
+                [1.31134183120894,103.675149627384,"255,255,178","L"]|
+                [1.3136621065607,103.67777839383,"255,255,178","K"]| 
+                [1.31306350772489,103.659391437084,"255,255,178","J"]|
+                [1.31445888590446,103.657599539354,"255,255,178","I"]|
+                [1.31556632446443,103.660711680345,"255,255,178","H"]|
+                [1.31631477859804,103.663603512547,"255,255,178","G"]|
+                [1.31800708851577,103.667902017847,"255,255,178","F"]|
+                [1.31953153944608,103.674704066438,"255,255,178","E"]|
+                [1.32001417106903,103.67231073805,"255,255,178","D"]|
+                [1.31927416271699,103.666985073661,"255,255,178","C"]|
+                [1.31953778095386,103.66615348828,"255,255,178","B"]|
+                [1.31947090075208,103.660530461345,"255,255,178","A"]&color=&fillColor='></img>
+            </div>     
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block title %}Shared Ride{% endblock %}
+{% block head %}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" style="margin-top: 2rem;" onsubmit="return validateTrip()">
+    <div class="form-group row ml-1">
+        <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" for="ride">Type of Ride:</label>
+        <input class="form-control text  col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" name="ride" id="ride" value="Shared" readonly/>
+    </div>
+    <div class="form-group row ml-1">
+        <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">Trips: </label>
+        <ol id="locations"></ol>
+        <input type="form-control text" name="locationsValue" id="locationsValue" hidden>
+        <input type="form-control number" name="capcityValue" id="capcityValue" value="0" hidden>
+    </div>
+    <div class="form-group row ml-1">
+        <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" for="passenger">Passenger:<span style="color: red;">*</span></label>       
+            <select class="form-control col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" name="passenger" id="passenger" onchange="changePassenger()">
+                <option value="" selected>Select Passenger</option>
+                <option value="Ali">Ali</option>
+                <option value="Bob">Bob</option>
+                <option value="Nathan">Nathan</option>
+            </select>
+    </div>
+    <div class="form-group row ml-1">
+        <label class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1 " for="capacity" >Capacity<span style="color: red;">*</span></label>
+        <select class="form-control  col-9	col-sm-9 col-md-9 col-lg-9 col-xl-9" id="capacity" name="capacity" for="capacity">
+            <option value="">Select Capacity</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <div class="form-group row ml-1">
+        <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+            <label for="faddress">From:</label><span style="color: red;">*</span>
+            <!-- <input class="form-control" type="text" placeholder="From" readonly>             -->
+            <select class="form-control" name="faddress" id="faddress" onchange="checkTrip()">
+                <option value="">Select Current Location</option>
+                {% for item in location %}
+                <option value="{{item}}">{{item}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5" style="margin-left: 1rem;">
+            <label for="taddress">To:</label><span style="color: red;">*</span>
+            <!-- <input class="form-control" type="text" placeholder="Destination"/> -->
+            <select class="form-control" name="taddress" id="taddress" onchange="checkTrip()">
+                <option value="">Select Destination Location</option>
+                {% for item in location %}
+                <option value="{{item}}">{{item}}</option>
+                {% endfor %}
+            </select>            
+        </div>  
+        <div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">
+            <input class="btn btn-outline-primary" style="margin-top:2rem!important" type="button" onclick="addLoaction()" value="add trips"/>
+        </div>        
+    </div>
+    <div class="form-group row ml-1">
+        <div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1">
+            <button class="btn btn-success" type="submit">submit</button>
+        </div>        
+    </div>
+</form>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+    var list = document.getElementById('locations');
+    function addLoaction(){
+        if(document.getElementById('passenger').value == ""){
+            alert("Please Select Passager");
+            return false
+        }
+        if(document.getElementById('capcity').value == ""){
+            alert("Please Select Capcity");
+            return false
+        }
+        if (!validate()){return false;}
+        var loca = "["+document.getElementById('faddress').value+","+document.getElementById('taddress').value+"]";
+        var entry = document.createElement('li');
+        entry.appendChild(document.createTextNode(loca));
+        list.appendChild(entry);
+        // passager,faddress,toaddress;passager,faddress,toaddress
+        document.getElementById("locationsValue").value += loca+",";
+        document.getElementById("capcityValue").value =  parseInt(document.getElementById("capcityValue").value)+parseInt(document.getElementById("capcity").value);
+        document.getElementById("passenger").value=""
+        document.getElementById("capcity").value=""
+        document.getElementById("faddress").value=""
+        document.getElementById("taddress").value=""
+    }
+    function changePassenger(){
+        document.getElementById('faddress').value='';
+        document.getElemdentById("taddress").value='';
+    }
+    function checkTrip(){
+        var toloca = document.getElementById('faddress').value;
+        var fromloca = document.getElementById('taddress').value;
+        if (toloca == fromloca){
+            alert("From location and Destination cannot be the same")
+        }        
+    }   
+    function validate(){
+        var toloca = document.getElementById('faddress').value;
+        var fromloca = document.getElementById('taddress').value;
+        if (toloca == fromloca){
+            alert("From location and Destination cannot be the same");
+            return false;
+        }
+        return true;
+    } 
+    function validateTrip(){
+        var capcityValue = document.getElementById('capcityValue').value;
+        if (capcityValue == "0" ){
+            alert("Pkease Add Trip!");
+            return false;
+        }
+        return true;
+    }
+</script>
+{% endblock %}

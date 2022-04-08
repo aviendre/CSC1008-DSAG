@@ -4,6 +4,8 @@
 ## > UCS searchest shortest path in terms of dest. cost from root to dest node
 ## > UCS stops as soon as a finishing point is found
 ## > Slightly less time consuming due to memory requirements than Dijkstra's algo
+## > It is also a best-first search (BFS) algo that traverses a graph
+## > by expanding the most promising vertex
 import pandas as pd
 from queue import PriorityQueue
 
@@ -47,7 +49,7 @@ def generatePath(root, dest):
         path.append(v)
         v = rootRoutes[v]
     
-    return path[::-1]    #, rootDistance
+    return path[::-1], rootDistance    #, rootDistance
 
 ## Initialize our GRAPH
 ## (How our graph will look like in dictionary format)

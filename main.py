@@ -1,5 +1,7 @@
 from onemapsg import OneMapClient
+from datetime import datetime
 import sys
+import math
 import djikstra as d
 import pandas as pd
 import graph as g
@@ -174,7 +176,10 @@ def calculateJourney(driver, x, y, z):
         x:int, nearest node to driver current location \n
         y:int, nearest node to driver pickup location \n
         z:int, nearest node to driver dropoff location \n
-
+    ...
+    Returns \n
+        string - routes of the journey from driver current location -> pickup location -> dropoff Location
+        integer - total time taken for the whole journey
     '''
     #initialization of the route
     route = '['
@@ -182,27 +187,29 @@ def calculateJourney(driver, x, y, z):
 
     # Current location to pickup location (Driver Start Route)
     root = d.dijkstra(graph, x, y)
-    routeToPickup = d.generatePath(root, y)
+    routeToPickup,dist = d.generatePath(root, y)
     for i in routeToPickup:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
     route += str(driver.getPickup()) + ','
-
+    
     #Pickup location to Endpoint location (Route)
     root = d.dijkstra(graph, y, z)
-    pickupToEndpoint = d.generatePath(root, z)
+    pickupToEndpoint,temp = d.generatePath(root, z)
     for i in pickupToEndpoint:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
     route += str(driver.getDropoff())
-
+    dist += temp
+    
     #Formatting of the string to easily pass to the OneMap API
     route += ']:255,0,0:3'
     route = route.replace(' ', '')
     route = route.replace('(', '[')
     route = route.replace(')', ']')
     route = route.replace("'", '')
-    return route
+  
+    return route, dist
 
 
 def calculateJourneyShared(driver, q, w, x, y, z):
@@ -216,14 +223,17 @@ def calculateJourneyShared(driver, q, w, x, y, z):
         x:int, nearest node to driver pickup location 2 \n
         y:int, nearest node to driver dropoff location 1 \n
         z:int, nearest node to driver dropoff location 2 \n
-
+    ...
+    Returns \n
+        string - routes of the journey from driver current location -> 2 pickup location -> 2 dropoff Location
+        integer - total time taken for the whole journey
     '''
     route = '['
     route += str(driver.getCurrentLocation()) + ','
 
     # Current location to 1st pickup location (Driver Start Route q -> w)
     root = d.dijkstra(graph, q, w)
-    routeToPickup = d.generatePath(root, w)
+    routeToPickup,dist = d.generatePath(root, w)
     for i in routeToPickup:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
@@ -232,30 +242,33 @@ def calculateJourneyShared(driver, q, w, x, y, z):
 
     # 1st pickup location to 2nd pickup location (w -> x)
     root = d.dijkstra(graph, w, x)
-    routeToPickup = d.generatePath(root, x)
+    routeToPickup,temp = d.generatePath(root, x)
     for i in routeToPickup:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
     route += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[1])].getPickup()) + ','
+    dist += temp
 
     #Pickup location to 1st Drop off location (x -> y)
     root = d.dijkstra(graph, x, y)
-    pickupToEndpoint = d.generatePath(root, y)
+    pickupToEndpoint,temp = d.generatePath(root, y)
     for i in pickupToEndpoint:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
     route += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[2])].getDropoff()) + ','
+    dist += temp
 
     #1st Drop off Location to 2nd Drop off location (y -> z)
     root = d.dijkstra(graph, y, z)
-    pickupToEndpoint = d.generatePath(root, z)
+    pickupToEndpoint, temp = d.generatePath(root, z)
     for i in pickupToEndpoint:
         route += str((intersectionNodes.get(
             int(i))[1], intersectionNodes.get(int(i))[0])) + ','
     route += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[3])].getDropoff())
+    dist += temp
 
     #Formatting of the route to be passed to the OneMap API
     route += ']:255,0,0:3'
@@ -263,7 +276,8 @@ def calculateJourneyShared(driver, q, w, x, y, z):
     route = route.replace('(', '[')
     route = route.replace(')', ']')
     route = route.replace("'", '')
-    return route
+    
+    return route, dist
 
 
 def calculatePoints(driver):
@@ -272,6 +286,9 @@ def calculatePoints(driver):
     ... \n
     Parameters \n
         driver:Driver, current driver object to get route \n
+    ...
+    Returns \n
+        string - returns the points of all stopping points
     '''
     points = str(driver.getCurrentLocation())
     points = points.replace(')', ',"255,178,0","A"]')
@@ -294,26 +311,38 @@ def calculateSharedPoints(driver):
     ... \n
     Parameters \n
         driver:Driver, current driver object to get route \n
+    ...
+      Returns \n
+          string - returns the points of all stopping points
     '''
+
+    colorCodes = ["180,0,0","0,180,0","0,0,180"]
+
+    string = (',"' + colorCodes[2]+'","A"]')
     points = str(driver.getCurrentLocation())
-    points = points.replace(')', ',"255,178,0","A"]')
+    points = points.replace(')', string)
     points = points.replace(')', ']')
     points += '|'
     points += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[0])].getPickup())
-    points = points.replace(')', ',"255,178,0","B"]')
+    
+    string = (',"' + colorCodes[int(driver.getSharedPattern().split(',')[0])]+'","B"]')
+    points = points.replace(')', string)
     points += '|'
     points += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[1])].getPickup())
-    points = points.replace(')', ',"255,178,0","C"]')
+    string = (',"' + colorCodes[int(driver.getSharedPattern().split(',')[1])]+'","C"]')
+    points = points.replace(')', string)
     points += '|'
     points += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[2])].getDropoff())
-    points = points.replace(')', ',"255,178,0","D"]')
+    string = (',"' + colorCodes[int(driver.getSharedPattern().split(',')[2])]+'","D"]')
+    points = points.replace(')', string)
     points += '|'
     points += str(driver.getPassengers()[int(
         driver.getSharedPattern().split(',')[3])].getDropoff())
-    points = points.replace(')', ',"255,178,0","E"]')
+    string = (',"' + colorCodes[int(driver.getSharedPattern().split(',')[3])]+'","E"]')
+    points = points.replace(')', string)
     points = points.replace('(', '[')
     points = points.replace(' ', '')
     points = points.replace("'", '')
@@ -364,7 +393,14 @@ def soloMatching(customer, dri):
     y = nearestNode(float(dri.getPickup()[0]), float(dri.getPickup()[1]))
     z = nearestNode(float(dri.getDropoff()[0]), float(dri.getDropoff()[1]))
 
-    return (calculateJourney(dri, x, y, z), calculatePoints(dri))
+    route, dist = calculateJourney(dri, x, y, z)
+    cost, time, distance = calculateJourneyDetails(dist, 'Solo')
+    return (route,
+            calculatePoints(dri),
+            cost,
+            time,
+            distance,
+            customer.getName())
 
 
 def sharedMatching(dri):
@@ -404,7 +440,7 @@ def sharedMatching(dri):
 
     if (clToP1 > clToP2):
         if (p2ToD1 > p2ToD2):
-            #cl -> p2 -> p1 -> d2 -> d1 [driver.getSharedPassenger()[0].getPickup() ,driver.getSharedPassenger()[1].getPickup()[0]]
+            #cl -> p2 -> p1 -> d2 -> d1 
             dri.setSharedPattern('1,0,1,0')
             q, w, x, y, z = clNode, p2Node, p1Node, d2Node, d1Node
         else:
@@ -421,9 +457,15 @@ def sharedMatching(dri):
             dri.setSharedPattern('0,1,0,1')
             q, w, x, y, z = clNode, p1Node, p2Node, d1Node, d2Node
     #(routes),(points) refer to calculateJourney,calculatePoints
-
-    return (calculateJourneyShared(dri, q, w, x, y,
-                                   z), calculateSharedPoints(dri))
+    route,dist = calculateJourneyShared(dri, q, w, x, y, z)
+    cost, time, distance = calculateJourneyDetails(dist, 'Shared')
+    return (route
+            ,calculateSharedPoints(dri)
+            ,cost
+            ,time
+            ,distance
+            ,dri.getPassengers()[0].getName()
+            ,dri.getPassengers()[1].getName())
 
 
 def UserToDriver(customerList, driverList):
@@ -510,6 +552,39 @@ def UserToDriver(customerList, driverList):
             currentMatching[i.getName()] = soloMatching(i)
     return currentMatching
 
+def calculateJourneyDetails(distance, service):
+  SPEED = 50 #km/h
+  now = datetime.now()
+  currentHour = now.strftime("%H")
+  now = datetime.now()
+  currentDay = now.strftime("%A")
+  peakPeriod = [7,8,9,17,18,19,20]
+  peakDays = ['Friday, Saturday, Sunday']
+  basePrice = 5
+  peakPrice = 3.5
+  hourMultiplier = 1
+  dayMultiplier = 0
+  gst = 1.07
+  serviceMultiplier = 1
+  pickUpTime = 2.5
+  
+  if (service == 'Shared'):
+    serviceMultiplier = 0.7
+    pickUpTime *= 2
+  if (currentDay in peakDays):
+    dayMultiplier = 1
+  if (int(currentHour) in peakPeriod):
+    hourMultiplier = 1.5
+  
+  cost = (serviceMultiplier * hourMultiplier * (math.floor(distance)+basePrice+(peakPrice*dayMultiplier)) * gst)
+          
+  time = (distance / SPEED) * 60 + pickUpTime
+  
+  return "$"+"{:.2f}".format(round(cost,1)), str(math.ceil(time))+" minutes", str(round(distance,2))+" km"
+    
+      
+
+    
 
 #Driver List Shared service
 driver1 = Client.search('628509').get('results')
@@ -541,66 +616,66 @@ driverList.append(
            (driver4data.get('LATITUDE'), driver4data.get('LONGITUDE')), 2,
            False))
 
-#Shared Customer pool
-customerStart = Client.search("629215").get('results')
-customerstart = next(iter(customerStart))
-customerEnd = Client.search('629197').get('results')
-customerend = next(iter(customerEnd))
-customerList.append(
-    Customer('Nathan', 2,
-             (customerstart.get('LATITUDE'), customerstart.get('LONGITUDE')),
-             (customerend.get('LATITUDE'), customerend.get('LONGITUDE')),
-             True))
+# #Shared Customer pool
+# customerStart = Client.search("629215").get('results')
+# customerstart = next(iter(customerStart))
+# customerEnd = Client.search('629197').get('results')
+# customerend = next(iter(customerEnd))
+# customerList.append(
+#     Customer('Nathan', 2,
+#              (customerstart.get('LATITUDE'), customerstart.get('LONGITUDE')),
+#              (customerend.get('LATITUDE'), customerend.get('LONGITUDE')),
+#              True))
 
-customer2Start = Client.search("629588").get('results')
-customer2start = next(iter(customer2Start))
-customer2End = Client.search('629199').get('results')
-customer2end = next(iter(customer2End))
-customerList.append(
-    Customer('Bob', 4,
-             (customer2start.get('LATITUDE'), customer2start.get('LONGITUDE')),
-             (customer2end.get('LATITUDE'), customer2end.get('LONGITUDE')),
-             True))
+# customer2Start = Client.search("629588").get('results')
+# customer2start = next(iter(customer2Start))
+# customer2End = Client.search('629199').get('results')
+# customer2end = next(iter(customer2End))
+# customerList.append(
+#     Customer('Bob', 4,
+#              (customer2start.get('LATITUDE'), customer2start.get('LONGITUDE')),
+#              (customer2end.get('LATITUDE'), customer2end.get('LONGITUDE')),
+#              True))
 
-customer3Start = Client.search("GUL CIRCLE MRT STATION (EW30)").get('results')
-customer3start = next(iter(customer3Start))
-customer3End = Client.search('629613').get('results')
-customer3end = next(iter(customer3End))
-customerList.append(
-    Customer('Liu', 2,
-             (customer3start.get('LATITUDE'), customer3start.get('LONGITUDE')),
-             (customer3end.get('LATITUDE'), customer3end.get('LONGITUDE')),
-             True))
+# customer3Start = Client.search("GUL CIRCLE MRT STATION (EW30)").get('results')
+# customer3start = next(iter(customer3Start))
+# customer3End = Client.search('629613').get('results')
+# customer3end = next(iter(customer3End))
+# customerList.append(
+#     Customer('Liu', 2,
+#              (customer3start.get('LATITUDE'), customer3start.get('LONGITUDE')),
+#              (customer3end.get('LATITUDE'), customer3end.get('LONGITUDE')),
+#              True))
 
-customer4Start = Client.search("24229 (BUS STOP)").get('results')
-customer4start = next(iter(customer4Start))
-customer4End = Client.search('629636').get('results')
-customer4end = next(iter(customer4End))
-customerList.append(
-    Customer('Ali', 2,
-             (customer4start.get('LATITUDE'), customer4start.get('LONGITUDE')),
-             (customer4end.get('LATITUDE'), customer4end.get('LONGITUDE')),
-             True))
+# customer4Start = Client.search("24229 (BUS STOP)").get('results')
+# customer4start = next(iter(customer4Start))
+# customer4End = Client.search('629636').get('results')
+# customer4end = next(iter(customer4End))
+# customerList.append(
+#     Customer('Ali', 2,
+#              (customer4start.get('LATITUDE'), customer4start.get('LONGITUDE')),
+#              (customer4end.get('LATITUDE'), customer4end.get('LONGITUDE')),
+#              True))
 
-#Solo customer pool
-customer5Start = Client.search("629605").get('results')
-customer5start = next(iter(customer5Start))
-customer5End = Client.search('24179 (BUS STOP)').get('results')
-customer5end = next(iter(customer5End))
-customerList.append(
-    Customer('Caleb', 4,
-             (customer5start.get('LATITUDE'), customer5start.get('LONGITUDE')),
-             (customer5end.get('LATITUDE'), customer5end.get('LONGITUDE')),
-             False))
+# #Solo customer pool
+# customer5Start = Client.search("629605").get('results')
+# customer5start = next(iter(customer5Start))
+# customer5End = Client.search('24179 (BUS STOP)').get('results')
+# customer5end = next(iter(customer5End))
+# customerList.append(
+#     Customer('Caleb', 4,
+#              (customer5start.get('LATITUDE'), customer5start.get('LONGITUDE')),
+#              (customer5end.get('LATITUDE'), customer5end.get('LONGITUDE')),
+#              False))
 
-customer6Start = Client.search("629585").get('results')
-customer6start = next(iter(customer6Start))
-customer6End = Client.search('629633').get('results')
-customer6end = next(iter(customer6End))
-customerList.append(
-    Customer('Wei Jie', 2,
-             (customer6start.get('LATITUDE'), customer6start.get('LONGITUDE')),
-             (customer6end.get('LATITUDE'), customer6end.get('LONGITUDE')),
-             False))
+# customer6Start = Client.search("629585").get('results')
+# customer6start = next(iter(customer6Start))
+# customer6End = Client.search('629633').get('results')
+# customer6end = next(iter(customer6End))
+# customerList.append(
+#     Customer('Wei Jie', 2,
+#              (customer6start.get('LATITUDE'), customer6start.get('LONGITUDE')),
+#              (customer6end.get('LATITUDE'), customer6end.get('LONGITUDE')),
+#              False))
 
-print(UserToDriver(customerList, driverList))
+# print(UserToDriver(customerList, driverList))
